@@ -31,8 +31,8 @@ type Video = {
 const videos: Video[] = [
     {
         "id": 0,
-        "title": "string",
-        "author": "string",
+        "title": "video interesting",
+        "author": "man",
         "canBeDownloaded": true,
         "minAgeRestriction": null,
         "createdAt": "2024-02-01T18:57:08.689Z",
