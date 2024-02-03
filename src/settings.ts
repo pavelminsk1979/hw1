@@ -159,6 +159,12 @@ app.put('/videos/:id', (req: RequestWithParamsWithBody<Param, PutVideo>, res: Re
         }
     }
 
+    if(publicationDate){
+        if(typeof publicationDate!=="string"){
+            errors.errorsMessages.push({message: 'Date value, type string', field: 'publicationDate'})
+        }
+    }
+
 
     if (errors.errorsMessages.length) {
         res.status(400).send(errors)
