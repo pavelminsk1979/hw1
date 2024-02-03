@@ -153,6 +153,12 @@ app.put('/videos/:id', (req: RequestWithParamsWithBody<Param, PutVideo>, res: Re
             errors.errorsMessages.push({message: 'min1,max 18', field: 'minAgeRestriction'})
         }
     }
+    if(canBeDownloaded){
+        if(typeof canBeDownloaded!=="boolean"){
+            errors.errorsMessages.push({message: 'boolean value', field: 'canBeDownloaded'})
+        }
+    }
+
 
     if (errors.errorsMessages.length) {
         res.status(400).send(errors)
