@@ -1,4 +1,5 @@
-import express,{Request,Response} from 'express'
+import express, {Request, Response} from 'express'
+
 export const app = express()
 
 
@@ -18,16 +19,16 @@ enum AvailableResolutions {
 
 type Video = {
     id?: number;
-	title?: string;
-	author?: string;
-	canBeDownloaded?: boolean;
-	minAgeRestriction?: number | null;
-	createdAt?: string;
-	publicationDate?: string;
-	availableResolutions?: AvailableResolutions[];
+    title?: string;
+    author?: string;
+    canBeDownloaded?: boolean;
+    minAgeRestriction?: number | null;
+    createdAt?: string;
+    publicationDate?: string;
+    availableResolutions?: AvailableResolutions[];
 }
 
-const videos:Video[] = [
+const videos: Video[] = [
     {
         "id": 0,
         "title": "string",
@@ -40,71 +41,75 @@ const videos:Video[] = [
     }
 ]
 
-type RequestWithParams<P>=Request<P,unknown,unknown,unknown>
-type Param={
-    id:number
+type RequestWithParams<P> = Request<P, unknown, unknown, unknown>
+type Param = {
+    id: number
 }
 
-type RequestWithBody<B>=Request<unknown,unknown,B,unknown>
+type RequestWithBody<B> = Request<unknown, unknown, B, unknown>
 type CreateVideo = {
     title: string,
     author: string,
     availableResolutions?: AvailableResolutions[]
 }
+
+type RequestWithParamsWithBody<P, B> = Request<P, unknown, B, unknown>
+type PutVideo = {
+    title: string,
+    author: string,
+    availableResolutions?: AvailableResolutions[]
+    canBeDownloaded?: boolean,
+    minAgeRestriction?: number,//maximum: 18   minimum: 1
+    publicationDate?: string
+}
+
 type ErrorsMessage = {
     message: string,
     field: string
 }
 type ErrorType = { errorsMessages: ErrorsMessage[] }
-app.get('/videos', (req:Request, res:Response) => {
-    res.send(videos)
+
+
+app.get('/videos', (req: Request, res: Response) => {
+    res.status(200).send(videos)
 })
 
-app.get('/videos/:id', (req:RequestWithParams<Param>, res:Response) => {
-    let video= videos.find(e=>e.id===+req.params.id)
-    if(video){
-        res.status(200).send(video)
-    } else  {
-        res.sendStatus(404)
-    }
 
-})
-
-app.post('/videos', (req:RequestWithBody<CreateVideo>, res:Response) => {
-   const errors:ErrorType = {errorsMessages:[]}
-    let { title, author, availableResolutions} = req.body
-    if(!title||!title.trim()||typeof title!=='string'||title.trim().length>40){
+app.post('/videos', (req: RequestWithBody<CreateVideo>, res: Response) => {
+    const errors: ErrorType = {errorsMessages: []}
+    let {title, author, availableResolutions} = req.body
+    if (!title || !title.trim() || typeof title !== 'string' || title.trim().length > 40) {
         errors.errorsMessages.push({message: 'Incorrect title', field: 'title'})
     }
-    if(!author||!author.trim()||typeof author!=='string'||author.trim().length>20){
+    if (!author || !author.trim() || typeof author !== 'string' || author.trim().length > 20) {
         errors.errorsMessages.push({message: 'Incorrect author', field: 'author'})
     }
-    if(Array.isArray(availableResolutions)){
-        availableResolutions.forEach(e=>{
-            if(!(e in AvailableResolutions)) {
+    if (Array.isArray(availableResolutions)) {
+        availableResolutions.forEach(e => {
+            if (!(e in AvailableResolutions)) {
                 errors.errorsMessages.push({message: 'Incorrect availableResolutions', field: 'availableResolutions'})
                 return
             }
         })
-    }else {
-        availableResolutions=[]
+    } else {
+        availableResolutions = []
     }
-    if(errors.errorsMessages.length){
+    if (errors.errorsMessages.length) {
         res.status(400).send(errors)
         return
     }
 
-    const createdAt= new Date()
-    const publicationDate= new Date()
+    const createdAt = new Date()
+    const publicationDate = new Date()
 
-    const newVideo:Video={
+    const newVideo: Video = {
         id: +(new Date()),
         title,
         author,
         canBeDownloaded: false,
         minAgeRestriction: null,
-        createdAt:createdAt.toString(),
-        publicationDate:publicationDate.toString(),
+        createdAt: createdAt.toString(),
+        publicationDate: publicationDate.toString(),
         availableResolutions
     }
 
@@ -113,7 +118,85 @@ app.post('/videos', (req:RequestWithBody<CreateVideo>, res:Response) => {
     res.status(201).send(newVideo)
 })
 
-app.delete('/testing/all-data', (req:Request, res:Response) => {
-    videos.length=0
+
+app.get('/videos/:id', (req: RequestWithParams<Param>, res: Response) => {
+    let video = videos.find(e => e.id === +req.params.id)
+    if (video) {
+        res.status(200).send(video)
+    } else {
+        res.sendStatus(404)
+    }
+
+})
+
+app.put('/videos/:id', (req: RequestWithParamsWithBody<Param, PutVideo>, res: Response) => {
+    const errors: ErrorType = {errorsMessages: []}
+    let {title, author, availableResolutions, minAgeRestriction, canBeDownloaded, publicationDate} = req.body
+    if (!title || !title.trim() || typeof title !== 'string' || title.trim().length > 40) {
+        errors.errorsMessages.push({message: 'Incorrect title', field: 'title'})
+    }
+    if (!author || !author.trim() || typeof author !== 'string' || author.trim().length > 20) {
+        errors.errorsMessages.push({message: 'Incorrect author', field: 'author'})
+    }
+    if (Array.isArray(availableResolutions)) {
+        availableResolutions.forEach(e => {
+            if (!(e in AvailableResolutions)) {
+                errors.errorsMessages.push({message: 'Incorrect availableResolutions', field: 'availableResolutions'})
+                return
+            }
+        })
+    } else {
+        availableResolutions = []
+    }
+    if (minAgeRestriction) {
+        if (minAgeRestriction < 1 || minAgeRestriction > 18) {
+            errors.errorsMessages.push({message: 'min1,max 18', field: 'minAgeRestriction'})
+        }
+    }
+
+    if (errors.errorsMessages.length) {
+        res.status(400).send(errors)
+        return
+    }
+
+    let video = videos.find(e => e.id === +req.params.id)
+    if (video) {
+        video.title = title
+        video.author = author
+        if (availableResolutions) {
+            video.availableResolutions = availableResolutions
+        }
+        if (canBeDownloaded) {
+            video.canBeDownloaded = canBeDownloaded
+        }
+        if (minAgeRestriction) {
+            video.minAgeRestriction = minAgeRestriction
+        }
+        if (publicationDate) {
+            video.publicationDate = publicationDate
+        }
+        res.sendStatus(204)
+    } else {
+        res.sendStatus(404)
+    }
+
+
+})
+
+
+app.delete('/videos/:id', (req: RequestWithParams<Param>, res: Response) => {
+    for (let i = 0; i < videos.length; i++) {
+        if (videos[i].id === +req.params.id) {
+            videos.splice(i, 1)
+            res.sendStatus(204)
+            return
+        }
+    }
+    res.sendStatus(404)
+})
+
+
+app.delete('/testing/all-data', (req: Request, res: Response) => {
+    videos.length = 0
     res.sendStatus(204)
 })
